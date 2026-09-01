@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Message Template</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2306C755'/%3E%3Cpath d='M14 22c0-4.4 3.6-8 8-8h20c4.4 0 8 3.6 8 8v10c0 4.4-3.6 8-8 8H28l-9.5 7.2c-.9.7-2.2 0-2.2-1.1V40c-1.4-1.4-2.3-3.4-2.3-5.6V22z' fill='white'/%3E%3Crect x='19' y='19' width='19' height='3.4' rx='1.7' fill='%2306C755'/%3E%3Crect x='19' y='25' width='26' height='3.4' rx='1.7' fill='%2306C755'/%3E%3Crect x='19' y='31' width='14' height='3.4' rx='1.7' fill='%2306C755'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --accent: #06C755;
+    --accent-dark: #04A648;
+    --bubble-bg: #A6E6A1;
+    --paper: #F7F5F0;
+    --ink: #23291F;
+    --ink-soft: #5C6357;
+    --line-gray: #D9DED3;
+    --card: #FFFFFF;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Segoe UI', 'Noto Sans Thai', 'Sarabun', system-ui, sans-serif;
+    padding: 32px 20px 60px;
+  }
+  .wrap {
+    max-width: 920px;
+    margin: 0 auto;
+  }
+  header {
+    margin-bottom: 28px;
+  }
+  header .tag {
+    display: inline-block;
+    background: var(--accent);
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 999px;
+    margin-bottom: 12px;
+  }
+  h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 6px;
+    letter-spacing: -0.02em;
+  }
+  header p {
+    color: var(--ink-soft);
+    font-size: 15px;
+    margin: 0;
+    max-width: 60ch;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 24px;
+  }
+  @media (max-width: 760px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+  .panel {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 24px;
+    border: 1px solid #E7E4DB;
+  }
+  .field {
+    margin-bottom: 18px;
+  }
+  .field:last-child { margin-bottom: 0; }
+  label {
+    display: block;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+  label .hint {
+    font-weight: 400;
+    color: var(--ink-soft);
+    font-size: 12.5px;
+  }
+  input[type="text"], textarea, select {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1.5px solid var(--line-gray);
+    font-size: 14.5px;
+    font-family: inherit;
+    background: #FCFBF8;
+    color: var(--ink);
+    transition: border-color .15s ease;
+  }
+  input[type="text"]:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  textarea {
+    resize: vertical;
+    min-height: 90px;
+    line-height: 1.6;
+  }
+  .divider {
+    border: none;
+    border-top: 1px solid #EDEAE0;
+    margin: 20px 0;
+  }
+  .save-btn {
+    background: #EFFBF1;
+    color: var(--accent-dark);
+    border: 1.5px solid var(--accent);
+    border-radius: 10px;
+    padding: 9px 14px;
+    font-size: 13.5px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .save-btn:hover { background: #DFF6E3; }
+  .save-status {
+    font-size: 12.5px;
+    color: var(--accent-dark);
+    margin-top: 6px;
+    min-height: 16px;
+  }
+
+  /* Preset section */
+  .preset-section {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+  }
+  .preset-section > label {
+    margin-bottom: 8px;
+  }
+  .preset-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .preset-row select { flex: 1; }
+  .icon-btn {
+    flex-shrink: 0;
+    background: #FCFBF8;
+    border: 1.5px solid var(--line-gray);
+    border-radius: 8px;
+    width: 38px;
+    font-size: 15px;
+    cursor: pointer;
+  }
+  .icon-btn:hover { border-color: var(--accent); background: #EFFBF1; }
+  .icon-btn.danger {
+    background: #FCEEEE;
+    border-color: #EFC6C6;
+    color: #C43E3E;
+  }
+  .icon-btn.danger:hover { background: #F8DADA; }
+  .preset-save-row {
+    display: flex;
+    gap: 8px;
+  }
+  .preset-save-row input { flex: 1; }
+
+  /* Dynamic link list */
+  .link-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .link-key {
+    flex-shrink: 0;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--accent-dark);
+    background: #EFFBF1;
+    border: 1px solid var(--accent);
+    border-radius: 7px;
+    padding: 8px 8px;
+    min-width: 52px;
+    text-align: center;
+    font-family: 'Consolas', monospace;
+  }
+  .link-row input[type="text"] {
+    flex: 1;
+  }
+  .remove-btn {
+    flex-shrink: 0;
+    background: #FCEEEE;
+    color: #C43E3E;
+    border: 1.5px solid #EFC6C6;
+    border-radius: 8px;
+    width: 34px;
+    height: 34px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    line-height: 1;
+  }
+  .remove-btn:hover { background: #F8DADA; }
+  .add-btn {
+    background: none;
+    border: 1.5px dashed var(--line-gray);
+    color: var(--ink-soft);
+    border-radius: 10px;
+    padding: 10px;
+    width: 100%;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 2px;
+  }
+  .add-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent-dark);
+    background: #EFFBF1;
+  }
+
+  /* Preview side */
+  .preview-panel {
+    background: #E9EDE3;
+    border-radius: 16px;
+    padding: 24px 20px;
+    border: 1px solid #E7E4DB;
+    display: flex;
+    flex-direction: column;
+  }
+  .preview-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    margin-bottom: 14px;
+  }
+  .chat-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    min-height: 220px;
+  }
+  .bubble {
+    background: var(--bubble-bg);
+    border-radius: 14px 14px 4px 14px;
+    padding: 14px 16px;
+    max-width: 90%;
+    align-self: flex-end;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 14.5px;
+    line-height: 1.65;
+    color: #1B2A17;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+  }
+  .copy-btn {
+    margin-top: 16px;
+    width: 100%;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 13px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .15s ease;
+  }
+  .copy-btn:hover { background: var(--accent-dark); }
+  .copy-btn.copied { background: #3D8B5F; }
+  .footnote {
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-top: 10px;
+    text-align: center;
+  }
+
+  /* Confirm modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(35, 41, 31, 0.45);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 1000;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 24px;
+    max-width: 380px;
+    width: 100%;
+    border: 1px solid #E7E4DB;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.18);
+  }
+  .modal-title {
+    font-size: 16.5px;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0 0 8px;
+  }
+  .modal-message {
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+    margin: 0 0 20px;
+  }
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+  }
+  .modal-btn {
+    flex: 1;
+    border-radius: 10px;
+    padding: 11px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    border: 1.5px solid var(--line-gray);
+    background: #FCFBF8;
+    color: var(--ink);
+  }
+  .modal-btn:hover { background: #F1EEE5; }
+  .modal-btn.danger {
+    background: #E5484D;
+    border-color: #C43E3E;
+    color: white;
+  }
+  .modal-btn.danger:hover { background: #C43E3E; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="tag">MESSAGE TEMPLATE</span>
+    <h1>ตัวสร้างข้อความ</h1>
+    <p>เพิ่ม/ลบรายการข้อมูลได้ตามต้องการ กำหนดเองใน Template ว่าจะเอา {link1}, {link2}, ... ไปวางตรงไหน แล้วบันทึกเป็น Preset ไว้ใช้ซ้ำได้</p>
+  </header>
+
+  <div class="grid">
+    <div class="panel">
+      <div class="preset-section preset-section--top">
+        <label>Preset <span class="hint">สลับ Format ที่บันทึกไว้ได้จาก dropdown</span></label>
+        <div class="preset-row">
+          <select id="presetSelect"></select>
+          <button class="icon-btn danger" id="deletePresetBtn" type="button" title="ลบ preset นี้">🗑</button>
+        </div>
+        <div class="preset-save-row">
+          <input type="text" id="presetNameInput" placeholder="ชื่อ preset">
+          <button class="save-btn" id="renamePresetBtn" type="button">เปลี่ยนชื่อ</button>
+        </div>
+        <button class="add-btn" id="addPresetBtn" type="button">+ เพิ่ม preset ใหม่</button>
+        <div class="save-status" id="presetStatus"></div>
+      </div>
+
+      <hr class="divider">
+
+      <label style="margin-bottom:10px;">รายการข้อมูล <span class="hint">แต่ละแถวจะได้ key {link1}, {link2}, ... ตามลำดับ</span></label>
+      <div id="linkList"></div>
+      <button class="add-btn" id="addLinkBtn" type="button">+ เพิ่มรายการ</button>
+
+      <hr class="divider">
+      <label style="margin-bottom:10px;">⚙️ แก้ไข Format ข้อความ <span class="hint">การแก้ไขจะถูกบันทึกลง preset ที่เลือกอยู่โดยอัตโนมัติ</span></label>
+      <div id="templateBox" style="margin-top:10px;">
+        <div class="field" style="margin-top:10px;">
+          <textarea id="templateInput"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="preview-panel">
+      <div class="preview-label">ตัวอย่างข้อความ</div>
+      <div class="chat-area">
+        <div class="bubble" id="previewBubble"></div>
+      </div>
+      <button class="copy-btn" id="copyBtn">คัดลอกข้อความ</button>
+      <div class="footnote">คัดลอกแล้วไปวางในแอปแชทที่ต้องการ</div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="confirmOverlay">
+  <div class="modal-card">
+    <p class="modal-title" id="confirmTitle">ยืนยันการลบ</p>
+    <p class="modal-message" id="confirmMessage"></p>
+    <div class="modal-actions">
+      <button class="modal-btn" id="confirmCancelBtn" type="button">ยกเลิก</button>
+      <button class="modal-btn danger" id="confirmOkBtn" type="button">ลบ</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const linkListEl = document.getElementById('linkList');
+  const addLinkBtn = document.getElementById('addLinkBtn');
+  const templateInput = document.getElementById('templateInput');
+  const preview = document.getElementById('previewBubble');
+  const copyBtn = document.getElementById('copyBtn');
+
+  const presetSelect = document.getElementById('presetSelect');
+  const deletePresetBtn = document.getElementById('deletePresetBtn');
+  const presetNameInput = document.getElementById('presetNameInput');
+  const renamePresetBtn = document.getElementById('renamePresetBtn');
+  const addPresetBtn = document.getElementById('addPresetBtn');
+  const presetStatus = document.getElementById('presetStatus');
+
+  const PRESETS_KEY = 'messageGenerator.presetsList';
+  const SELECTED_KEY = 'messageGenerator.selectedPresetIndex';
+  const DEFAULT_TEMPLATE = 'FB Link : {link1}\nGoogle Drive: {link2}\n\n🎉';
+
+  function loadPresets() {
+    let presets;
+    try {
+      presets = JSON.parse(localStorage.getItem(PRESETS_KEY));
+    } catch (e) {
+      presets = null;
+    }
+    if (!Array.isArray(presets) || presets.length === 0) {
+      presets = [{ name: 'Preset 1', template: DEFAULT_TEMPLATE }];
+      localStorage.setItem(PRESETS_KEY, JSON.stringify(presets));
+    }
+    return presets;
+  }
+
+  function savePresets() {
+    localStorage.setItem(PRESETS_KEY, JSON.stringify(presets));
+  }
+
+  let presets = loadPresets();
+  let selectedIndex = parseInt(localStorage.getItem(SELECTED_KEY), 10);
+  if (isNaN(selectedIndex) || selectedIndex < 0 || selectedIndex >= presets.length) {
+    selectedIndex = 0;
+  }
+
+  function setSelectedIndex(i) {
+    selectedIndex = i;
+    localStorage.setItem(SELECTED_KEY, String(i));
+  }
+
+  function showStatus(msg) {
+    presetStatus.textContent = msg;
+    setTimeout(() => { presetStatus.textContent = ''; }, 2500);
+  }
+
+  function refreshPresetSelect() {
+    presetSelect.innerHTML = '';
+    presets.forEach((p, i) => {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = p.name;
+      presetSelect.appendChild(opt);
+    });
+    presetSelect.value = selectedIndex;
+  }
+
+  function loadSelectedPresetIntoUI() {
+    const p = presets[selectedIndex];
+    templateInput.value = p.template;
+    presetNameInput.value = p.name;
+    render();
+  }
+
+  presetSelect.addEventListener('change', () => {
+    setSelectedIndex(parseInt(presetSelect.value, 10));
+    loadSelectedPresetIntoUI();
+  });
+
+  templateInput.addEventListener('input', () => {
+    presets[selectedIndex].template = templateInput.value;
+    savePresets();
+    render();
+  });
+
+  renamePresetBtn.addEventListener('click', () => {
+    const newName = presetNameInput.value.trim();
+    if (!newName) {
+      showStatus('กรุณาตั้งชื่อ preset ก่อนบันทึก');
+      return;
+    }
+    const isDuplicate = presets.some((p, i) => i !== selectedIndex && p.name === newName);
+    if (isDuplicate) {
+      showStatus('ชื่อนี้ถูกใช้แล้ว กรุณาตั้งชื่ออื่น');
+      return;
+    }
+    presets[selectedIndex].name = newName;
+    savePresets();
+    refreshPresetSelect();
+    showStatus('เปลี่ยนชื่อแล้ว ✓');
+  });
+
+  addPresetBtn.addEventListener('click', () => {
+    let n = presets.length + 1;
+    let name = 'Preset ' + n;
+    while (presets.some(p => p.name === name)) {
+      n++;
+      name = 'Preset ' + n;
+    }
+    presets.push({ name: name, template: templateInput.value });
+    savePresets();
+    setSelectedIndex(presets.length - 1);
+    refreshPresetSelect();
+    loadSelectedPresetIntoUI();
+    showStatus('เพิ่ม preset "' + name + '" แล้ว');
+  });
+
+  const confirmOverlay = document.getElementById('confirmOverlay');
+  const confirmMessage = document.getElementById('confirmMessage');
+  const confirmCancelBtn = document.getElementById('confirmCancelBtn');
+  const confirmOkBtn = document.getElementById('confirmOkBtn');
+
+  function showConfirmModal(message) {
+    return new Promise(resolve => {
+      confirmMessage.textContent = message;
+      confirmOverlay.classList.add('open');
+
+      function cleanup(result) {
+        confirmOverlay.classList.remove('open');
+        confirmOkBtn.removeEventListener('click', onOk);
+        confirmCancelBtn.removeEventListener('click', onCancel);
+        confirmOverlay.removeEventListener('click', onOverlayClick);
+        resolve(result);
+      }
+      function onOk() { cleanup(true); }
+      function onCancel() { cleanup(false); }
+      function onOverlayClick(e) {
+        if (e.target === confirmOverlay) cleanup(false);
+      }
+
+      confirmOkBtn.addEventListener('click', onOk);
+      confirmCancelBtn.addEventListener('click', onCancel);
+      confirmOverlay.addEventListener('click', onOverlayClick);
+    });
+  }
+
+  deletePresetBtn.addEventListener('click', async () => {
+    if (presets.length <= 1) {
+      showStatus('ต้องมี preset อย่างน้อย 1 อัน');
+      return;
+    }
+    const removedName = presets[selectedIndex].name;
+    const confirmed = await showConfirmModal('ต้องการลบ preset "' + removedName + '" ใช่หรือไม่? การลบนี้ไม่สามารถย้อนกลับได้');
+    if (!confirmed) return;
+    presets.splice(selectedIndex, 1);
+    savePresets();
+    setSelectedIndex(0);
+    refreshPresetSelect();
+    loadSelectedPresetIntoUI();
+    showStatus('ลบ preset "' + removedName + '" แล้ว');
+  });
+
+  function addLinkRow(value) {
+    const row = document.createElement('div');
+    row.className = 'link-row';
+
+    const key = document.createElement('span');
+    key.className = 'link-key';
+    row.appendChild(key);
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = 'วางลิงก์หรือข้อความที่นี่';
+    input.value = value || '';
+    input.addEventListener('input', render);
+    row.appendChild(input);
+
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'remove-btn';
+    removeBtn.type = 'button';
+    removeBtn.textContent = '✕';
+    removeBtn.addEventListener('click', () => {
+      row.remove();
+      renumberKeys();
+      render();
+    });
+    row.appendChild(removeBtn);
+
+    linkListEl.appendChild(row);
+    renumberKeys();
+  }
+
+  function renumberKeys() {
+    const rows = linkListEl.querySelectorAll('.link-row');
+    rows.forEach((row, i) => {
+      row.querySelector('.link-key').textContent = '{link' + (i + 1) + '}';
+    });
+  }
+
+  addLinkBtn.addEventListener('click', () => {
+    addLinkRow('');
+    render();
+  });
+
+  function render() {
+    let text = templateInput.value;
+    const rows = linkListEl.querySelectorAll('.link-row');
+    rows.forEach((row, i) => {
+      const val = row.querySelector('input[type="text"]').value;
+      const placeholder = '{link' + (i + 1) + '}';
+      text = text.split(placeholder).join(val || placeholder);
+    });
+    preview.textContent = text;
+  }
+
+  copyBtn.addEventListener('click', () => {
+    navigator.clipboard.writeText(preview.textContent).then(() => {
+      copyBtn.textContent = 'คัดลอกแล้ว ✓';
+      copyBtn.classList.add('copied');
+      setTimeout(() => {
+        copyBtn.textContent = 'คัดลอกข้อความ';
+        copyBtn.classList.remove('copied');
+      }, 1500);
+    });
+  });
+
+  // Start with two rows to match the default template ({link1}, {link2})
+  addLinkRow('');
+  addLinkRow('');
+  refreshPresetSelect();
+  loadSelectedPresetIntoUI();
+</script>
+</body>
+</html>
