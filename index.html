@@ -163,6 +163,15 @@
     gap: 8px;
   }
   .preset-save-row input { flex: 1; }
+  .backup-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .backup-row .save-btn {
+    flex: 1;
+    text-align: center;
+  }
 
   /* Dynamic link list */
   .link-row {
@@ -354,12 +363,17 @@
           <button class="save-btn" id="renamePresetBtn" type="button">เปลี่ยนชื่อ</button>
         </div>
         <button class="add-btn" id="addPresetBtn" type="button">+ เพิ่ม preset ใหม่</button>
+        <div class="backup-row">
+          <button class="save-btn" id="exportPresetsBtn" type="button">⬇️ สำรองข้อมูล (ดาวน์โหลด)</button>
+          <button class="save-btn" id="importPresetsBtn" type="button">⬆️ กู้คืนข้อมูล (อัปโหลด)</button>
+          <input type="file" id="importFileInput" accept="application/json" style="display:none;">
+        </div>
         <div class="save-status" id="presetStatus"></div>
       </div>
 
       <hr class="divider">
 
-      <label style="margin-bottom:10px;">รายการข้อมูล <span class="hint">แต่ละแถวจะได้ key {link1}, {link2}, ... ตามลำดับ</span></label>
+      <label style="margin-bottom:10px;">รายการข้อมูล <span class="hint">แต่ละแถวจะได้ key {msg1}, {msg2}, ... ตามลำดับ</span></label>
       <div id="linkList"></div>
       <button class="add-btn" id="addLinkBtn" type="button">+ เพิ่มรายการ</button>
 
@@ -407,10 +421,13 @@
   const renamePresetBtn = document.getElementById('renamePresetBtn');
   const addPresetBtn = document.getElementById('addPresetBtn');
   const presetStatus = document.getElementById('presetStatus');
+  const exportPresetsBtn = document.getElementById('exportPresetsBtn');
+  const importPresetsBtn = document.getElementById('importPresetsBtn');
+  const importFileInput = document.getElementById('importFileInput');
 
   const PRESETS_KEY = 'messageGenerator.presetsList';
   const SELECTED_KEY = 'messageGenerator.selectedPresetIndex';
-  const DEFAULT_TEMPLATE = 'FB Link : {link1}\nGoogle Drive: {link2}\n\n🎉';
+  const DEFAULT_TEMPLATE = 'ตัวอย่างข้อความ\nExample message : {msg1}\nExample message : {msg2}';
 
   function loadPresets() {
     let presets;
@@ -499,7 +516,7 @@
       n++;
       name = 'Preset ' + n;
     }
-    presets.push({ name: name, template: templateInput.value });
+    presets.push({ name: name, template: DEFAULT_TEMPLATE });
     savePresets();
     setSelectedIndex(presets.length - 1);
     refreshPresetSelect();
@@ -535,6 +552,59 @@
       confirmOverlay.addEventListener('click', onOverlayClick);
     });
   }
+
+  exportPresetsBtn.addEventListener('click', () => {
+    const dataStr = JSON.stringify(presets, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'message-template-presets-backup.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showStatus('ดาวน์โหลดไฟล์สำรองข้อมูลแล้ว');
+  });
+
+  importPresetsBtn.addEventListener('click', () => {
+    importFileInput.value = '';
+    importFileInput.click();
+  });
+
+  importFileInput.addEventListener('change', () => {
+    const file = importFileInput.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      let imported;
+      try {
+        imported = JSON.parse(reader.result);
+      } catch (e) {
+        showStatus('ไฟล์นี้ไม่ใช่ไฟล์สำรองข้อมูลที่ถูกต้อง');
+        return;
+      }
+      if (!Array.isArray(imported) || imported.some(p => typeof p !== 'object' || typeof p.name !== 'string' || typeof p.template !== 'string')) {
+        showStatus('รูปแบบไฟล์ไม่ถูกต้อง');
+        return;
+      }
+      let addedCount = 0;
+      imported.forEach(p => {
+        let name = p.name;
+        let n = 2;
+        while (presets.some(existing => existing.name === name)) {
+          name = p.name + ' (' + n + ')';
+          n++;
+        }
+        presets.push({ name: name, template: p.template });
+        addedCount++;
+      });
+      savePresets();
+      refreshPresetSelect();
+      showStatus('กู้คืนสำเร็จ เพิ่ม ' + addedCount + ' preset');
+    };
+    reader.readAsText(file);
+  });
 
   deletePresetBtn.addEventListener('click', async () => {
     if (presets.length <= 1) {
@@ -585,7 +655,7 @@
   function renumberKeys() {
     const rows = linkListEl.querySelectorAll('.link-row');
     rows.forEach((row, i) => {
-      row.querySelector('.link-key').textContent = '{link' + (i + 1) + '}';
+      row.querySelector('.link-key').textContent = '{msg' + (i + 1) + '}';
     });
   }
 
@@ -599,7 +669,7 @@
     const rows = linkListEl.querySelectorAll('.link-row');
     rows.forEach((row, i) => {
       const val = row.querySelector('input[type="text"]').value;
-      const placeholder = '{link' + (i + 1) + '}';
+      const placeholder = '{msg' + (i + 1) + '}';
       text = text.split(placeholder).join(val || placeholder);
     });
     preview.textContent = text;
