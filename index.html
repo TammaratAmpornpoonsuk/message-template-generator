@@ -437,7 +437,7 @@
       presets = null;
     }
     if (!Array.isArray(presets) || presets.length === 0) {
-      presets = [{ name: 'Preset 1', template: DEFAULT_TEMPLATE }];
+      presets = [{ name: 'Preset 1', template: DEFAULT_TEMPLATE, rowCount: 2 }];
       localStorage.setItem(PRESETS_KEY, JSON.stringify(presets));
     }
     return presets;
@@ -478,6 +478,7 @@
     const p = presets[selectedIndex];
     templateInput.value = p.template;
     presetNameInput.value = p.name;
+    setRowCount(typeof p.rowCount === 'number' ? p.rowCount : 2);
     render();
   }
 
@@ -516,7 +517,7 @@
       n++;
       name = 'Preset ' + n;
     }
-    presets.push({ name: name, template: DEFAULT_TEMPLATE });
+    presets.push({ name: name, template: DEFAULT_TEMPLATE, rowCount: 2 });
     savePresets();
     setSelectedIndex(presets.length - 1);
     refreshPresetSelect();
@@ -596,7 +597,7 @@
           name = p.name + ' (' + n + ')';
           n++;
         }
-        presets.push({ name: name, template: p.template });
+        presets.push({ name: name, template: p.template, rowCount: typeof p.rowCount === 'number' ? p.rowCount : 2 });
         addedCount++;
       });
       savePresets();
@@ -622,7 +623,22 @@
     showStatus('ลบ preset "' + removedName + '" แล้ว');
   });
 
-  function addLinkRow(value) {
+  function persistRowCount() {
+    const count = linkListEl.querySelectorAll('.link-row').length;
+    if (presets[selectedIndex]) {
+      presets[selectedIndex].rowCount = count;
+      savePresets();
+    }
+  }
+
+  function setRowCount(count) {
+    linkListEl.innerHTML = '';
+    for (let i = 0; i < count; i++) {
+      addLinkRow('', false);
+    }
+  }
+
+  function addLinkRow(value, shouldPersist) {
     const row = document.createElement('div');
     row.className = 'link-row';
 
@@ -644,12 +660,16 @@
     removeBtn.addEventListener('click', () => {
       row.remove();
       renumberKeys();
+      persistRowCount();
       render();
     });
     row.appendChild(removeBtn);
 
     linkListEl.appendChild(row);
     renumberKeys();
+    if (shouldPersist !== false) {
+      persistRowCount();
+    }
   }
 
   function renumberKeys() {
@@ -686,9 +706,7 @@
     });
   });
 
-  // Start with two rows to match the default template ({link1}, {link2})
-  addLinkRow('');
-  addLinkRow('');
+  // Row count is restored per-preset inside loadSelectedPresetIntoUI()
   refreshPresetSelect();
   loadSelectedPresetIntoUI();
 </script>
