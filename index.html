@@ -25,7 +25,7 @@
     padding: 32px 20px 60px;
   }
   .wrap {
-    max-width: 920px;
+    max-width: 1160px;
     margin: 0 auto;
   }
   header {
@@ -55,17 +55,24 @@
   }
   .grid {
     display: grid;
-    grid-template-columns: 1.1fr 1fr;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr) minmax(0, 0.8fr);
+    justify-content: center;
     gap: 24px;
+  }
+  @media (max-width: 1150px) {
+    .grid { grid-template-columns: 1fr 1fr; justify-content: stretch; }
+    .log-panel { grid-column: 1 / -1; }
   }
   @media (max-width: 760px) {
     .grid { grid-template-columns: 1fr; }
+    .log-panel { grid-column: auto; }
   }
   .panel {
     background: var(--card);
     border-radius: 16px;
     padding: 24px;
     border: 1px solid #E7E4DB;
+    min-width: 0;
   }
   .field {
     margin-bottom: 18px;
@@ -141,7 +148,7 @@
     gap: 8px;
     margin-bottom: 8px;
   }
-  .preset-row select { flex: 1; }
+  .preset-row select { flex: 1; min-width: 0; }
   .icon-btn {
     flex-shrink: 0;
     background: #FCFBF8;
@@ -162,7 +169,7 @@
     display: flex;
     gap: 8px;
   }
-  .preset-save-row input { flex: 1; }
+  .preset-save-row input { flex: 1; min-width: 0; }
   .backup-row {
     display: flex;
     gap: 8px;
@@ -170,7 +177,12 @@
   }
   .backup-row .save-btn {
     flex: 1;
+    min-width: 0;
     text-align: center;
+    white-space: normal;
+    line-height: 1.3;
+    padding: 8px 6px;
+    font-size: 12px;
   }
 
   /* Dynamic link list */
@@ -236,6 +248,7 @@
     border: 1px solid #E7E4DB;
     display: flex;
     flex-direction: column;
+    min-width: 0;
   }
   .preview-label {
     font-size: 13px;
@@ -340,6 +353,102 @@
     color: white;
   }
   .modal-btn.danger:hover { background: #C43E3E; }
+
+  /* Post log panel */
+  .log-panel {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid #E7E4DB;
+    min-width: 0;
+  }
+  .log-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .log-title {
+    font-size: 14.5px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .log-title .hint {
+    display: block;
+    font-weight: 400;
+    margin-top: 2px;
+  }
+  .log-settings {
+    display: none;
+    background: #FCFBF8;
+    border: 1px solid var(--line-gray);
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+  .log-settings.open { display: block; }
+  .log-settings label {
+    font-size: 12.5px;
+    margin-bottom: 6px;
+  }
+  .log-list {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 420px;
+    overflow-y: auto;
+  }
+  .log-empty {
+    font-size: 13px;
+    color: var(--ink-soft);
+    text-align: center;
+    padding: 20px 10px;
+    line-height: 1.6;
+  }
+  .log-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--line-gray);
+    border-radius: 10px;
+    background: #FCFBF8;
+  }
+  .log-info { flex: 1; min-width: 0; }
+  .log-time {
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    margin-bottom: 2px;
+  }
+  .log-link-row {
+    font-size: 13px;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .log-platform-label {
+    font-weight: 700;
+    color: var(--accent-dark);
+  }
+  .log-copy-btn {
+    flex-shrink: 0;
+    background: #EFFBF1;
+    color: var(--accent-dark);
+    border: 1.5px solid var(--accent);
+    border-radius: 8px;
+    width: 32px;
+    height: 32px;
+    font-size: 15px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .log-copy-btn:hover { background: #DFF6E3; }
+  .log-copy-btn.copied { background: #3D8B5F; color: white; border-color: #3D8B5F; }
 </style>
 </head>
 <body>
@@ -347,7 +456,7 @@
   <header>
     <span class="tag">MESSAGE TEMPLATE</span>
     <h1>ตัวสร้างข้อความ</h1>
-    <p>เพิ่ม/ลบรายการข้อมูลได้ตามต้องการ กำหนดเองใน Template ว่าจะเอา {link1}, {link2}, ... ไปวางตรงไหน แล้วบันทึกเป็น Preset ไว้ใช้ซ้ำได้</p>
+    <p>เพิ่ม/ลบรายการข้อมูลได้ตามต้องการ กำหนดเองใน Template ว่าจะเอา {msg1}, {msg2}, ... ไปวางตรงไหน แล้วบันทึกเป็น Preset ไว้ใช้ซ้ำได้</p>
   </header>
 
   <div class="grid">
@@ -393,6 +502,23 @@
       </div>
       <button class="copy-btn" id="copyBtn">คัดลอกข้อความ</button>
       <div class="footnote">คัดลอกแล้วไปวางในแอปแชทที่ต้องการ</div>
+    </div>
+
+    <div class="log-panel">
+      <div class="log-header">
+        <div class="log-title">🔔 โพสต์ล่าสุด <span class="hint">เรียงตามเวลาโพสต์ ใหม่สุดอยู่บน</span></div>
+        <button class="icon-btn" id="logSettingsBtn" type="button" title="ตั้งค่าการเชื่อมต่อ">⚙️</button>
+      </div>
+
+      <div id="logSettingsBox" class="log-settings">
+        <label>Worker API URL <span class="hint">ลิงก์ endpoint ของ Cloudflare Worker ที่จะดึงรายการโพสต์</span></label>
+        <input type="text" id="logApiUrlInput" placeholder="https://your-worker.your-subdomain.workers.dev/posts">
+        <button class="save-btn" id="saveLogApiBtn" type="button" style="margin-top:8px;">บันทึก</button>
+      </div>
+
+      <button class="add-btn" id="refreshLogBtn" type="button">🔄 รีเฟรชรายการ</button>
+      <div id="logList" class="log-list"></div>
+      <div class="save-status" id="logStatus"></div>
     </div>
   </div>
 </div>
@@ -523,6 +649,126 @@
     refreshPresetSelect();
     loadSelectedPresetIntoUI();
     showStatus('เพิ่ม preset "' + name + '" แล้ว');
+  });
+
+  // ---- Post log panel (reads from a Cloudflare Worker once it's set up) ----
+  const logSettingsBtn = document.getElementById('logSettingsBtn');
+  const logSettingsBox = document.getElementById('logSettingsBox');
+  const logApiUrlInput = document.getElementById('logApiUrlInput');
+  const saveLogApiBtn = document.getElementById('saveLogApiBtn');
+  const refreshLogBtn = document.getElementById('refreshLogBtn');
+  const logListEl = document.getElementById('logList');
+  const logStatus = document.getElementById('logStatus');
+  const LOG_API_KEY = 'messageGenerator.logApiUrl';
+
+  const savedLogApiUrl = localStorage.getItem(LOG_API_KEY) || '';
+  logApiUrlInput.value = savedLogApiUrl;
+
+  function showLogStatus(msg) {
+    logStatus.textContent = msg;
+    setTimeout(() => { logStatus.textContent = ''; }, 3000);
+  }
+
+  logSettingsBtn.addEventListener('click', () => {
+    logSettingsBox.classList.toggle('open');
+  });
+
+  saveLogApiBtn.addEventListener('click', () => {
+    const url = logApiUrlInput.value.trim();
+    localStorage.setItem(LOG_API_KEY, url);
+    logSettingsBox.classList.remove('open');
+    showLogStatus(url ? 'บันทึก URL แล้ว กด "รีเฟรชรายการ" เพื่อดึงข้อมูล' : 'ลบ URL แล้ว');
+  });
+
+  function copyToClipboard(text, btnEl) {
+    navigator.clipboard.writeText(text).then(() => {
+      const original = btnEl.textContent;
+      btnEl.textContent = '✓';
+      btnEl.classList.add('copied');
+      showLogStatus('คัดลอกลิงก์แล้ว วางที่ต้องการได้เลย');
+      setTimeout(() => {
+        btnEl.textContent = original;
+        btnEl.classList.remove('copied');
+      }, 1500);
+    });
+  }
+
+  function formatLogTime(ts) {
+    try {
+      const d = new Date(ts);
+      if (isNaN(d.getTime())) return String(ts);
+      return d.toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' });
+    } catch (e) {
+      return String(ts);
+    }
+  }
+
+  const platformLabel = { facebook: 'Facebook', instagram: 'Instagram' };
+
+  function renderLogList(items) {
+    logListEl.innerHTML = '';
+    if (!items || items.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'log-empty';
+      empty.textContent = 'ยังไม่มีข้อมูลโพสต์ — เชื่อมต่อ Worker API แล้วกด "รีเฟรชรายการ"';
+      logListEl.appendChild(empty);
+      return;
+    }
+    const sorted = [...items].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    sorted.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'log-item';
+
+      const info = document.createElement('div');
+      info.className = 'log-info';
+      const time = document.createElement('div');
+      time.className = 'log-time';
+      time.textContent = formatLogTime(item.timestamp);
+      const linkRow = document.createElement('div');
+      linkRow.className = 'log-link-row';
+      const label = platformLabel[item.platform];
+      if (label) {
+        const labelSpan = document.createElement('span');
+        labelSpan.className = 'log-platform-label';
+        labelSpan.textContent = label + ' : ';
+        linkRow.appendChild(labelSpan);
+      }
+      linkRow.appendChild(document.createTextNode(item.url));
+      info.appendChild(time);
+      info.appendChild(linkRow);
+      row.appendChild(info);
+
+      const copyBtn = document.createElement('button');
+      copyBtn.className = 'log-copy-btn';
+      copyBtn.type = 'button';
+      copyBtn.title = 'คัดลอกลิงก์';
+      copyBtn.textContent = '📋';
+      copyBtn.addEventListener('click', () => copyToClipboard(item.url, copyBtn));
+      row.appendChild(copyBtn);
+
+      logListEl.appendChild(row);
+    });
+  }
+
+  // Initial empty state
+  renderLogList([]);
+
+  refreshLogBtn.addEventListener('click', async () => {
+    const url = (localStorage.getItem(LOG_API_KEY) || '').trim();
+    if (!url) {
+      showLogStatus('ยังไม่ได้ตั้งค่า Worker API URL — กด ⚙️ เพื่อใส่ก่อน');
+      return;
+    }
+    showLogStatus('กำลังดึงข้อมูล...');
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      renderLogList(Array.isArray(data) ? data : []);
+      showLogStatus('อัปเดตล่าสุดแล้ว');
+    } catch (e) {
+      showLogStatus('ดึงข้อมูลไม่สำเร็จ ตรวจสอบ URL หรือลองใหม่อีกครั้ง');
+    }
   });
 
   const confirmOverlay = document.getElementById('confirmOverlay');
