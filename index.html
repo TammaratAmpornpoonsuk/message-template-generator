@@ -465,6 +465,8 @@
         <label>Preset <span class="hint">สลับ Format ที่บันทึกไว้ได้จาก dropdown</span></label>
         <div class="preset-row">
           <select id="presetSelect"></select>
+          <button class="icon-btn" id="movePresetUpBtn" type="button" title="ย้ายขึ้น">⬆️</button>
+          <button class="icon-btn" id="movePresetDownBtn" type="button" title="ย้ายลง">⬇️</button>
           <button class="icon-btn danger" id="deletePresetBtn" type="button" title="ลบ preset นี้">🗑</button>
         </div>
         <div class="preset-save-row">
@@ -542,6 +544,8 @@
   const copyBtn = document.getElementById('copyBtn');
 
   const presetSelect = document.getElementById('presetSelect');
+  const movePresetUpBtn = document.getElementById('movePresetUpBtn');
+  const movePresetDownBtn = document.getElementById('movePresetDownBtn');
   const deletePresetBtn = document.getElementById('deletePresetBtn');
   const presetNameInput = document.getElementById('presetNameInput');
   const renamePresetBtn = document.getElementById('renamePresetBtn');
@@ -612,6 +616,20 @@
     setSelectedIndex(parseInt(presetSelect.value, 10));
     loadSelectedPresetIntoUI();
   });
+
+  function movePreset(offset) {
+    const targetIndex = selectedIndex + offset;
+    if (targetIndex < 0 || targetIndex >= presets.length) return;
+    const temp = presets[selectedIndex];
+    presets[selectedIndex] = presets[targetIndex];
+    presets[targetIndex] = temp;
+    setSelectedIndex(targetIndex);
+    savePresets();
+    refreshPresetSelect();
+  }
+
+  movePresetUpBtn.addEventListener('click', () => movePreset(-1));
+  movePresetDownBtn.addEventListener('click', () => movePreset(1));
 
   templateInput.addEventListener('input', () => {
     presets[selectedIndex].template = templateInput.value;
