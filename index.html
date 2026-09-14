@@ -222,6 +222,19 @@
     line-height: 1;
   }
   .remove-btn:hover { background: #F8DADA; }
+  .clear-btn {
+    flex-shrink: 0;
+    background: #FCFBF8;
+    color: var(--ink-soft);
+    border: 1.5px solid var(--line-gray);
+    border-radius: 8px;
+    width: 34px;
+    height: 34px;
+    font-size: 15px;
+    cursor: pointer;
+    line-height: 1;
+  }
+  .clear-btn:hover { border-color: var(--accent); color: var(--accent-dark); background: #EFFBF1; }
   .add-btn {
     background: none;
     border: 1.5px dashed var(--line-gray);
@@ -916,6 +929,17 @@
     input.value = value || '';
     input.addEventListener('input', render);
     row.appendChild(input);
+
+    const clearBtn = document.createElement('button');
+    clearBtn.className = 'clear-btn';
+    clearBtn.type = 'button';
+    clearBtn.title = 'ล้างข้อความในช่องนี้';
+    clearBtn.textContent = '⌫';
+    clearBtn.addEventListener('click', () => {
+      input.value = '';
+      render();
+    });
+    row.appendChild(clearBtn);
 
     const removeBtn = document.createElement('button');
     removeBtn.className = 'remove-btn';
