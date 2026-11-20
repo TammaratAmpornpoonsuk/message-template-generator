@@ -174,6 +174,43 @@
     border-color: var(--accent);
   }
   .preset-item.just-moved { animation: presetFlash .6s ease; }
+  .drag-handle {
+    flex-shrink: 0;
+    width: 18px;
+    margin-left: -6px;
+    text-align: center;
+    font-size: 16px;
+    line-height: 1;
+    color: #A8AEA2;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+  }
+  .drag-handle:hover { color: var(--accent-dark); }
+  .preset-item.dragging { opacity: .35; }
+  .preset-item.drop-before { box-shadow: 0 -4px 0 -1px var(--accent); }
+  .preset-item.drop-after { box-shadow: 0 4px 0 -1px var(--accent); }
+  .preset-item.drop-group {
+    border-color: var(--accent);
+    background: #C9F2D2;
+    border-style: dashed;
+  }
+  .preset-item.drop-group-blocked {
+    border-color: #EFC6C6;
+    background: #FCEEEE;
+    border-style: dashed;
+  }
+  .drag-ghost {
+    position: fixed;
+    z-index: 2000;
+    pointer-events: none;
+    opacity: .95;
+    background: #FFFFFF !important;
+    border-color: var(--accent) !important;
+    box-shadow: 0 10px 24px rgba(0,0,0,.18);
+    transform: rotate(1deg);
+  }
+  body.is-dragging, body.is-dragging * { cursor: grabbing !important; user-select: none; }
   @keyframes presetFlash {
     0% { background: #C9F2D2; }
     100% { background: #EFFBF1; }
@@ -698,7 +735,7 @@
         <label>Preset</label>
         <div class="current-preset-row">
           <button class="current-preset" id="currentPresetBtn" type="button" title="เปิดเมนูจัดการ Preset">
-            <span class="current-preset-label">กำลังใช้ · <span class="current-group-name" id="currentGroupName"></span></span>
+            <span class="current-preset-label">กำลังใช้ <span class="current-group-name" id="currentGroupName"></span></span>
             <span class="current-preset-name" id="currentPresetName"></span>
           </button>
           <button class="save-btn manage-btn" id="openPresetManagerBtn" type="button">⚙️ จัดการ Preset</button>
@@ -802,7 +839,8 @@
       <ul>
         <li><b>กดชื่อ</b> เพื่อเลือกใช้ Preset นั้น (เมนูปิดให้อัตโนมัติ)</li>
         <li><b>✏️</b> เปลี่ยนชื่อ กด Enter บันทึก หรือ Esc ยกเลิก ชื่อห้ามซ้ำภายใน group เดียวกัน</li>
-        <li><b>📂</b> ย้าย Preset ไป group อื่น เลือกปลายทางแล้วกด ✓</li>
+        <li><b>ลากที่ ⠿</b> หน้าชื่อ Preset ขึ้นหรือลงเพื่อจัดลำดับ (มีเส้นสีเขียวบอกตำแหน่งที่จะวาง) หรือลากไปวางบนชื่อ <b>Group ทางซ้าย</b> เพื่อย้ายไป group นั้น ใช้ได้ทั้งเมาส์และนิ้วบนมือถือ กด Esc ระหว่างลากเพื่อยกเลิก</li>
+        <li><b>📂</b> ย้าย Preset ไป group อื่น เลือกปลายทางแล้วกด ✓ (อีกวิธีนอกจากลาก)</li>
         <li><b>▲ ▼</b> จัดลำดับ · <b>🗑</b> ลบ (มีให้ยืนยันก่อน)</li>
         <li><b>+ เพิ่ม preset ใหม่</b> เพิ่มใน group ที่เปิดดูอยู่ แล้วตั้งชื่อได้ทันที</li>
       </ul>
@@ -844,7 +882,7 @@
       <p class="modal-title" id="presetManagerTitle">จัดการ Group และ Preset</p>
       <button class="icon-btn manager-close" id="closePresetManagerBtn" type="button" title="ปิด">✕</button>
     </div>
-    <p class="manager-hint">เลือก Group ทางซ้ายเพื่อดู Preset ข้างใน · กดชื่อ Preset เพื่อเลือกใช้ · ✏️ เปลี่ยนชื่อ · 📂 ย้าย Group · ▲ ▼ จัดลำดับ · 🗑 ลบ</p>
+    <p class="manager-hint">เลือก Group ทางซ้ายเพื่อดู Preset ข้างใน · กดชื่อ Preset เพื่อเลือกใช้ · ลาก ⠿ เพื่อจัดลำดับ หรือลากไปวางบน Group ทางซ้ายเพื่อย้าย · ✏️ เปลี่ยนชื่อ · 📂 ย้าย Group · ▲ ▼ จัดลำดับ · 🗑 ลบ</p>
     <input type="text" id="presetSearchInput" class="manager-search" placeholder="🔍 ค้นหา preset ในทุก group">
     <div class="manager-panes">
       <div class="manager-pane">
@@ -1146,6 +1184,7 @@
       item.className = 'preset-item' + (g === viewG ? ' viewing' : '');
       if (flash && flash.type === 'group' && flash.g === g) item.classList.add('just-moved');
       item.dataset.index = g;
+      item.dataset.groupIndex = g;
       item.appendChild(makeIndex(g));
 
       if (editing && editing.type === 'group' && editing.g === g) {
@@ -1234,6 +1273,16 @@
       item.className = 'preset-item' + (isActive ? ' selected' : '');
       if (flash && flash.type === 'preset' && flash.g === viewG && flash.p === i) item.classList.add('just-moved');
       item.dataset.index = i;
+      const isBusyRow = (editing && editing.type === 'preset' && editing.g === viewG && editing.p === i) || (moving && moving.g === viewG && moving.p === i);
+      if (!isBusyRow) {
+        const handle = document.createElement('span');
+        handle.className = 'drag-handle';
+        handle.textContent = '⠿';
+        handle.title = 'ลากเพื่อย้ายตำแหน่ง หรือลากไปวางบน group ทางซ้ายเพื่อย้าย group';
+        handle.addEventListener('click', e => e.stopPropagation());
+        handle.addEventListener('pointerdown', e => startPresetDrag(e, i, item));
+        item.appendChild(handle);
+      }
       item.appendChild(makeIndex(i));
 
       if (editing && editing.type === 'preset' && editing.g === viewG && editing.p === i) {
@@ -1466,6 +1515,166 @@
   presetManagerOverlay.addEventListener('click', e => {
     if (e.target === presetManagerOverlay) closePresetManager();
   });
+  // ---- Drag & drop presets: reorder within a group, or drop on a group to move it there ----
+  let drag = null;
+
+  function clearDropMarks() {
+    document.querySelectorAll('.drop-before, .drop-after, .drop-group, .drop-group-blocked')
+      .forEach(el => el.classList.remove('drop-before', 'drop-after', 'drop-group', 'drop-group-blocked'));
+  }
+
+  function startPresetDrag(e, index, item) {
+    if (e.button !== undefined && e.button !== 0) return;
+    if (presetSearchInput.value.trim() || editing || moving) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const rect = item.getBoundingClientRect();
+    drag = {
+      index: index,
+      item: item,
+      startX: e.clientX,
+      startY: e.clientY,
+      offsetX: e.clientX - rect.left,
+      offsetY: e.clientY - rect.top,
+      width: rect.width,
+      started: false,
+      ghost: null,
+      target: null,
+      lastY: e.clientY,
+      raf: null,
+    };
+    document.addEventListener('pointermove', onDragMove);
+    document.addEventListener('pointerup', onDragEnd);
+    document.addEventListener('pointercancel', cancelDrag);
+  }
+
+  function beginDragVisuals() {
+    drag.started = true;
+    const ghost = drag.item.cloneNode(true);
+    ghost.classList.remove('selected', 'just-moved');
+    ghost.classList.add('drag-ghost');
+    ghost.style.width = drag.width + 'px';
+    document.body.appendChild(ghost);
+    drag.ghost = ghost;
+    drag.item.classList.add('dragging');
+    document.body.classList.add('is-dragging');
+    autoScrollLoop();
+  }
+
+  function onDragMove(e) {
+    if (!drag) return;
+    drag.lastY = e.clientY;
+    if (!drag.started) {
+      if (Math.abs(e.clientX - drag.startX) + Math.abs(e.clientY - drag.startY) < 5) return;
+      beginDragVisuals();
+    }
+    drag.ghost.style.left = (e.clientX - drag.offsetX) + 'px';
+    drag.ghost.style.top = (e.clientY - drag.offsetY) + 'px';
+    updateDropTarget(e.clientX, e.clientY);
+  }
+
+  function updateDropTarget(x, y) {
+    clearDropMarks();
+    drag.target = null;
+    const el = document.elementFromPoint(x, y);
+    if (!el) return;
+
+    // Dropping onto a group (left pane)
+    const groupItem = el.closest('#groupList .preset-item');
+    if (groupItem && groupItem.dataset.groupIndex !== undefined) {
+      const g = parseInt(groupItem.dataset.groupIndex, 10);
+      if (g === viewG) return;
+      if (groups[viewG].presets.length <= 1) {
+        groupItem.classList.add('drop-group-blocked');
+        drag.target = { type: 'blocked' };
+      } else {
+        groupItem.classList.add('drop-group');
+        drag.target = { type: 'group', g: g };
+      }
+      return;
+    }
+
+    // Reordering inside the preset list
+    if (!el.closest('#presetList')) return;
+    const rows = Array.from(presetListEl.querySelectorAll('.preset-item[data-index]'));
+    if (rows.length === 0) return;
+    let insertAt = rows.length;
+    for (let r = 0; r < rows.length; r++) {
+      const box = rows[r].getBoundingClientRect();
+      if (y < box.top + box.height / 2) { insertAt = r; break; }
+    }
+    if (insertAt === drag.index || insertAt === drag.index + 1) {
+      drag.target = { type: 'none' };
+      return;
+    }
+    if (insertAt < rows.length) rows[insertAt].classList.add('drop-before');
+    else rows[rows.length - 1].classList.add('drop-after');
+    drag.target = { type: 'reorder', insertAt: insertAt };
+  }
+
+  function autoScrollLoop() {
+    if (!drag || !drag.started) return;
+    const box = presetListEl.getBoundingClientRect();
+    const edge = 36;
+    let dy = 0;
+    if (drag.lastY < box.top + edge && drag.lastY > box.top - 60) dy = -8;
+    else if (drag.lastY > box.bottom - edge && drag.lastY < box.bottom + 60) dy = 8;
+    if (dy) presetListEl.scrollTop += dy;
+    drag.raf = requestAnimationFrame(autoScrollLoop);
+  }
+
+  function endDragCommon() {
+    document.removeEventListener('pointermove', onDragMove);
+    document.removeEventListener('pointerup', onDragEnd);
+    document.removeEventListener('pointercancel', cancelDrag);
+    if (drag) {
+      if (drag.raf) cancelAnimationFrame(drag.raf);
+      if (drag.ghost) drag.ghost.remove();
+      if (drag.item) drag.item.classList.remove('dragging');
+    }
+    document.body.classList.remove('is-dragging');
+    clearDropMarks();
+  }
+
+  function cancelDrag() {
+    endDragCommon();
+    drag = null;
+  }
+
+  function suppressNextClick() {
+    const block = ev => { ev.stopPropagation(); ev.preventDefault(); };
+    document.addEventListener('click', block, true);
+    setTimeout(() => document.removeEventListener('click', block, true), 0);
+  }
+
+  function onDragEnd() {
+    const d = drag;
+    endDragCommon();
+    drag = null;
+    if (d && d.started) suppressNextClick();
+    if (!d || !d.started || !d.target) return;
+
+    if (d.target.type === 'blocked') {
+      showStatus('group ต้องมีอย่างน้อย 1 preset จึงย้าย preset สุดท้ายออกไม่ได้');
+      return;
+    }
+    if (d.target.type === 'group') {
+      movePresetToGroup(viewG, d.index, d.target.g);
+      return;
+    }
+    if (d.target.type === 'reorder') {
+      const list = groups[viewG].presets;
+      const active = currentPreset();
+      const pr = list.splice(d.index, 1)[0];
+      const newIndex = d.target.insertAt > d.index ? d.target.insertAt - 1 : d.target.insertAt;
+      list.splice(newIndex, 0, pr);
+      if (viewG === selG) selP = list.indexOf(active);
+      saveState();
+      flash = { type: 'preset', g: viewG, p: newIndex };
+      refreshPresetSelect();
+    }
+  }
+
   presetSearchInput.addEventListener('input', () => {
     editing = null; moving = null;
     refreshPresetSelect();
@@ -1484,6 +1693,7 @@
 
   document.addEventListener('keydown', e => {
     if (e.key !== 'Escape') return;
+    if (drag) { cancelDrag(); return; }
     if (document.getElementById('confirmOverlay').classList.contains('open')) return;
     if (guideOverlay.classList.contains('open')) { closeGuide(); return; }
     if (presetManagerOverlay.classList.contains('open')) {
